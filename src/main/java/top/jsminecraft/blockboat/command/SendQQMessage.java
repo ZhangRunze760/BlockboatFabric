@@ -34,14 +34,5 @@ public class SendQQMessage implements ModInitializer {
                 .post(requestBody)
                 .build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                if (response.body() != null) System.out.println("消息发送成功：" + response.body().string());
-            } else {
-                System.out.println("消息发送失败：" + response.message());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }
