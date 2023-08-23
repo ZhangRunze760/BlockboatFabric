@@ -4,11 +4,14 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import lombok.Getter;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import top.jsminecraft.blockboat.BlockboatFabric;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.Objects;
 
 public class GetQQMessage {
@@ -38,7 +41,11 @@ public class GetQQMessage {
             JObject requestBody = jObject.fromJson(request, JObject.class);
             if (Objects.equals(requestBody.getPost_type(), "message")) {
                 Sender sender = requestBody.getSender();
-                sendMessage.sendMCMessage(GetQQMessage.server, parseCQCode(requestBody.getMessage()), sender.getCard());
+                if (sender.getCard() == null) {
+                    if (requestBody.getMessage().startsWith("sudo ")) sendMessage.sendMessageToGroup(parseQQCommand(requestBody.getMessage(), sender));
+                    else sendMessage.sendMCMessage(GetQQMessage.server, CQParse.replace(requestBody.getMessage(), sender.getCard()), sender.getCard());
+                }
+                else sendMessage.sendMCMessage(GetQQMessage.server, CQParse.replace(requestBody.getMessage(), sender.getNickname()), sender.getNickname());
             }
             byte[] response = "OK".getBytes();
             exchange.sendResponseHeaders(200, response.length);
@@ -47,29 +54,26 @@ public class GetQQMessage {
         }
     }
 
-    public static String parseQQCommand(String message) {
-        if (message.startsWith("sudo ")) {
-            String command = message.replace("sudo ", "");
-            if (command == "list") {
-
-            }
+    public static String parseQQCommand(String message, Sender sender) {
+        String command = message.replace("sudo ", "");
+        if (command.equals("list")) {
+            Collection<ServerPlayerEntity> playerList = server.getPlayerManager().getPlayerList();
+            String playerListStr = "";
+            for (ServerPlayerEntity player : playerList) playerListStr += player.getName().getString() + "\n";
+            playerListStr = playerListStr.substring(0, playerListStr.lastIndexOf("\n"));
+            return String.format("""
+                        服务器当前在线人数：%d
+                        在线玩家：%s
+                        """, playerList.size(), playerListStr);
+        } else if (Objects.equals(sender.getRole(), "admin")) {
+            server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), command);
+            return "发送成功！";
         }
-        return message;
-    }
-
-    public static String parseCQCode(String cqMessage) {
-        // 处理图片
-        cqMessage = cqMessage.replaceAll("\\[CQ:image,file=(.*?)\\]", "【图片】");
-        // 处理@消息
-        cqMessage = cqMessage.replaceAll("\\[CQ:at,qq=(.*?)\\]", "@[$1]");
-        //处理语音
-        cqMessage = cqMessage.replaceAll("\\[CQ:record,(.*?)\\]", "【语音】");
-        //处理回复
-        cqMessage = cqMessage.replaceAll("\\[CQ:reply,text=(.*?)\\]", "【回复】");
-        return cqMessage;
+        else return "发送失败！";
     }
 }
 
+@Getter
 class JObject {
     public JObject(String post_type, String message_type, String message, Sender sender) {
         this.post_type = post_type;
@@ -78,32 +82,16 @@ class JObject {
         this.sender = sender;
     }
 
-    public String getPost_type() {
-        return post_type;
-    }
-
     public void setPost_type(String post_type) {
         this.post_type = post_type;
-    }
-
-    public String getMessage_type() {
-        return message_type;
     }
 
     public void setMessage_type(String message_type) {
         this.message_type = message_type;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public Sender getSender() {
-        return sender;
     }
 
     public void setSender(Sender sender) {
@@ -116,6 +104,7 @@ class JObject {
     private Sender sender;
 }
 
+@Getter
 class Sender {
     public Sender(String nickname, String card, String role) {
         this.nickname = nickname;
@@ -123,24 +112,12 @@ class Sender {
         this.role = role;
     }
 
-    public String getNickname() {
-        return nickname;
-    }
-
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
 
-    public String getCard() {
-        return card;
-    }
-
     public void setCard(String card) {
         this.card = card;
-    }
-
-    public String getRole() {
-        return role;
     }
 
     public void setRole(String role) {

@@ -143,13 +143,23 @@ public class BlockboatFabric implements ModInitializer {
                             context.getSource().sendMessage(Text.literal("§4不完整的命令"));
                             return 1;
                         })
-                        .then(literal("test")
+                        //config子命令注册结束
+
+                        //sendMessage子命令注册开始
+                        .then(literal("sendMessage")
+                                .requires(source -> source.hasPermissionLevel(4))
+                                .then(CommandManager.argument("message", StringArgumentType.string())
+                                        .executes(context -> {
+                                            sendMessage.sendMessageToGroup(StringArgumentType.getString(context, "message"));
+                                            context.getSource().sendMessage(Text.literal("发送成功！"));
+                                            return 0;
+                                        }))
                                 .executes(context -> {
-                                    System.out.println(sendCommand("list"));
-                                    sendCommand("say The command has been sended.");
+                                    context.getSource().sendMessage(Text.literal("§4不完整的命令"));
                                     return 0;
                                 }))
-                        //config子命令注册结束
+                        //sendMessage子命令注册结束
+
                 ));
         //qqbot命令注册结束
 
@@ -195,21 +205,7 @@ public class BlockboatFabric implements ModInitializer {
         GSON.toJson(config, writer);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private String sendCommand(String command) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        PrintStream printStream = new PrintStream(byteArrayOutputStream);
-
-        // 保存原始 System.out
-        PrintStream originalSystemOut = System.out;
-        // 重定向 System.out 到 printStream
-        System.setOut(printStream);
-        // 执行命令
-        source.getServer().getCommandManager().execute(source.getServer().getCommandManager().getDispatcher().parse(command, source), command);
-        // 获取输出内容
-        String output = byteArrayOutputStream.toString();
-        // 恢复原始 System.out
-        System.setOut(originalSystemOut);
-        return output;
+    private void sendCommand(String command) {
+        server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, source), command);
     }
 }
