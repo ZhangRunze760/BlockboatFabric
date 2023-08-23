@@ -2,37 +2,58 @@ package top.jsminecraft.blockboat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.command.CommandSource;
+import net.minecraft.network.message.MessageType;
+import net.minecraft.network.message.SignedMessage;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import top.jsminecraft.blockboat.command.GetQQMessage;
+import top.jsminecraft.blockboat.command.SendMessage;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import static net.minecraft.server.command.CommandManager.*;
 
 public class BlockboatFabric implements ModInitializer {
+    public static final Logger LOGGER = LogManager.getLogger();
+    public static MinecraftServer server = null;
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("blockboat.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public static ModConfig config;
     private static ServerCommandSource source;
+    public static final Identifier CHAT_CHANNEL = new Identifier("blockboat", "chat");
+    private final Map<ServerPlayerEntity, String> playerChatMap = new HashMap<>();
+    private SendMessage sendMessage;
     @Override
     public void onInitialize() {
+        LOGGER.info("正在加载Blockboat...");
+        long starttime = System.nanoTime();
+        ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarting);
         //配置文件注册开始
         config = loadConfig();
+        sendMessage = new SendMessage(config.qqGroupID, config.BOT_API_URL);
         //配置文件注册结束
 
         //配置消息接收器
         GetQQMessage getQQMessage = new GetQQMessage();
-        //NewMessageEvent.INSTANCE.register(this::sendBroadcastMessage);
+        ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
 
         //qqbot命令注册开始
@@ -51,27 +72,104 @@ public class BlockboatFabric implements ModInitializer {
                                     return 0;
                                 }))
                         //credits子命令注册结束
-                                .then(literal("test")
-                                        .executes(context -> {
-                                            source = context.getSource().getServer().getCommandSource();
-                                            Iterable<ServerPlayerEntity> playerEntities = source.getServer().getPlayerManager().getPlayerList();
-                                            for (ServerPlayerEntity player : playerEntities) {
-                                                player.sendMessage(Text.literal("This is a test"));
-                                                player.sendMessage(Text.literal(context.getSource().getServer().toString()));
-                                            }
-                                            return 0;
-                                        }))
-                        .then(literal("config")
-                                .executes(context -> {
 
-                                    return 0;
+                        //config子命令注册开始
+                        .then(literal("config")
+                                .then(literal("isQQSendEnabled")
+                                        .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                .executes(context -> {
+                                                    config.isQQSendEnabled = BoolArgumentType.getBool(context, "value");
+                                                    saveConfig(config);
+                                                    context.getSource().sendMessage(Text.literal("成功设置"));
+                                                    return 0;
+                                                }))
+                                        .executes(context -> {
+                                            context.getSource().sendMessage(Text.literal(String.format("isQQSendEnabled = %s", config.isQQSendEnabled)));
+                                            return 1;
+                                        }))
+                                .then(literal("isMCSendEnabled")
+                                        .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                .executes(context -> {
+                                                    config.isMCSendEnabled = BoolArgumentType.getBool(context, "value");
+                                                    saveConfig(config);
+                                                    context.getSource().sendMessage(Text.literal("成功设置"));
+                                                    return 0;
+                                                }))
+                                        .executes(context -> {
+                                            context.getSource().sendMessage(Text.literal(String.format("isMCSendEnabled = %s", config.isMCSendEnabled)));
+                                            return 1;
+                                        }))
+                                .then(literal("QQGroupID")
+                                        .then(CommandManager.argument("value", StringArgumentType.string())
+                                                .executes(context -> {
+                                                    config.qqGroupID = StringArgumentType.getString(context, "value");
+                                                    saveConfig(config);
+                                                    context.getSource().sendMessage(Text.literal("成功设置"));
+                                                    return 0;
+                                                }))
+                                        .executes(context -> {
+                                            context.getSource().sendMessage(Text.literal(String.format("QQGroupID = %s", config.qqGroupID)));
+                                            return 1;
+                                        }))
+                                .then(literal("BOT_API_URL")
+                                        .then(CommandManager.argument("value", StringArgumentType.string())
+                                                .executes(context -> {
+                                                    config.BOT_API_URL = StringArgumentType.getString(context, "value");
+                                                    saveConfig(config);
+                                                    context.getSource().sendMessage(Text.literal("成功设置"));
+                                                    return 0;
+                                                }))
+                                        .executes(context -> {
+                                            context.getSource().sendMessage(Text.literal(String.format("BOT_API_URL = %s", config.BOT_API_URL)));
+                                            return 1;
+                                        }))
+                                .then(literal("HttpPostPort")
+                                        .then(CommandManager.argument("value", IntegerArgumentType.integer(0, 65535))
+                                                .executes(context -> {
+                                                    config.HttpPostPort = IntegerArgumentType.getInteger(context, "value");
+                                                    saveConfig(config);
+                                                    context.getSource().sendMessage(Text.literal("成功设置"));
+                                                    return 0;
+                                                }))
+                                        .executes(context -> {
+                                            context.getSource().sendMessage(Text.literal(String.format("HttpPostPort = %d", config.HttpPostPort)));
+                                            return 1;
+                                        }))
+                                .executes(context -> {
+                                    context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                                    return 1;
                                 }))
                         .executes(context -> {
-                            context.getSource().sendMessage(Text.literal("我是憨批机器人"));
-                            return 0;
+                            context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                            return 1;
                         })
+                        .then(literal("test")
+                                .executes(context -> {
+                                    sendCommand("list");
+                                    sendCommand("say The command has been sended.");
+                                    return 0;
+                                }))
+                        //config子命令注册结束
                 ));
         //qqbot命令注册结束
+
+        double pass = (System.nanoTime() - starttime) / 1e9;
+        LOGGER.info(String.format("加载完成！耗时：%.2f秒。",pass));
+    }
+
+    private void onServerChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {
+        String message = signedMessage.getContent().getString();
+        String sender = player.getName().getString();
+        sendMessage.sendMessageToGroup(String.format("<%s> %s", sender, message));
+    }
+
+    private void onServerStarting(MinecraftServer server) {
+        BlockboatFabric.server = server;
+        GetQQMessage.server = server;
+    }
+
+    private void setPlayerChatMessage(ServerPlayerEntity player, String message) {
+        playerChatMap.put(player, message);
     }
 
     private ModConfig loadConfig() {
@@ -88,10 +186,30 @@ public class BlockboatFabric implements ModInitializer {
     }
 
     private void saveConfig(ModConfig config) {
-        try (Writer writer = Files.newBufferedWriter(CONFIG_PATH)) {
-            GSON.toJson(config, writer);
+        Writer writer;
+        try {
+            writer = Files.newBufferedWriter(CONFIG_PATH);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+        GSON.toJson(config, writer);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private String sendCommand(String command) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(byteArrayOutputStream);
+
+        // 保存原始 System.out
+        PrintStream originalSystemOut = System.out;
+        // 重定向 System.out 到 printStream
+        System.setOut(printStream);
+        // 执行命令
+        source.getServer().getCommandManager().execute(source.getServer().getCommandManager().getDispatcher().parse(command, source), command);
+        // 获取输出内容
+        String output = byteArrayOutputStream.toString();
+        // 恢复原始 System.out
+        System.setOut(originalSystemOut);
+        return output;
     }
 }

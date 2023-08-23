@@ -9,5 +9,7 @@ public class ModConfig {
     public boolean isMCSendEnabled = true;
     @SerializedName("qqGroupID")
     public String qqGroupID = "123456";
+    public String BOT_API_URL = "http://127.0.0.1:5700";
+    public int HttpPostPort = 5710;
 
 }
