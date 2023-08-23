@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 public class CQParse {
     static BindManager bindManager = new BindManager();
+
     public static String replaceCQ(String rawMessage) {
         BindManager bindManager = new BindManager();
         String regex = "\\[CQ:(\\w+)(,[^\\]]+)?\\]"; // 正则表达式匹配CQ码
@@ -20,7 +21,8 @@ public class CQParse {
             switch (messageType) {
                 case "at":
                     String qqID = extractQQNumber(messageParams);
-                    if(bindManager.IsIdBind(qqID)) matcher.appendReplacement(resultBuffer, "@" + bindManager.getNameById(qqID) + " ");
+                    if (bindManager.IsIdBind(qqID))
+                        matcher.appendReplacement(resultBuffer, "@" + bindManager.getNameById(qqID) + " ");
                     else matcher.appendReplacement(resultBuffer, "[at]");
                     break;
                 case "image":

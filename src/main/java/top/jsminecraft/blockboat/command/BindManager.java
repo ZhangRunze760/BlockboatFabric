@@ -1,17 +1,18 @@
 package top.jsminecraft.blockboat.command;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 
 public class BindManager {
     private static final File FILE = new File("config/blockboat-bind.json");
+    private final ObjectMapper mapper = new ObjectMapper();
     private Map<String, String> idToNameMap = new HashMap<>();
     private Map<String, String> nameToIdMap = new HashMap<>();
-    private final ObjectMapper mapper = new ObjectMapper();
 
     @SneakyThrows
     public BindManager() {
@@ -23,8 +24,7 @@ public class BindManager {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-        else FILE.createNewFile();
+        } else FILE.createNewFile();
     }
 
     public boolean bind(String id, String name) {
