@@ -9,6 +9,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
@@ -43,15 +44,29 @@ public class BlockboatFabric implements ModInitializer {
     private SendMessage sendMessage;
     @Override
     public void onInitialize() {
+
         LOGGER.info("正在加载Blockboat...");
         long starttime = System.nanoTime();
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarting);
+
         //配置文件注册开始
         config = loadConfig();
         sendMessage = new SendMessage(config.qqGroupID, config.BOT_API_URL);
         //配置文件注册结束
 
-        //配置消息接收器
+        //玩家登入登出事件注册开始
+        ServerPlayConnectionEvents.JOIN.register(((handler, sender, server) -> {
+            String playerName = handler.getPlayer().getName().getString();
+            sendMessage.sendMessageToGroup(String.format("%s 加入了游戏"));
+        }));
+
+        ServerPlayConnectionEvents.DISCONNECT.register(((handler, server) -> {
+            String playerName = handler.getPlayer().getName().getString();
+            sendMessage.sendMessageToGroup(String.format("%s 退出了游戏"));
+        }));
+        //玩家登入登出事件注册结束
+
+        //配置消息接收器开始
         GetQQMessage getQQMessage = new GetQQMessage();
         ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
@@ -162,6 +177,13 @@ public class BlockboatFabric implements ModInitializer {
 
                 ));
         //qqbot命令注册结束
+
+        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
+            literal("badapple!!").executes(context -> {
+                context.getSource().sendMessage(Text.literal("Bad Apple!!播放功能正在开发（"));
+                return 0;
+            });
+        }));
 
         double pass = (System.nanoTime() - starttime) / 1e9;
         LOGGER.info(String.format("加载完成！耗时：%.2f秒。",pass));
