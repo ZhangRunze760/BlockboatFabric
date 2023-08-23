@@ -208,4 +208,8 @@ public class BlockboatFabric implements ModInitializer {
     private void sendCommand(String command) {
         server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, source), command);
     }
+
+    private void onPlayerLoggedOn() {
+
+    }
 }
