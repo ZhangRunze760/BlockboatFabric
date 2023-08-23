@@ -1,6 +1,8 @@
 package top.jsminecraft.blockboat.command;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import okhttp3.*;
 
 import java.io.BufferedReader;
@@ -8,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 public class SendMessage {
     private final String group_id;
@@ -33,10 +36,11 @@ public class SendMessage {
     }
 
     public void sendMCMessage(MinecraftServer server, String message, String sender) {
-        String command = String.format("""
-        tellraw @a {"text":"*<%s> %s","color":"yellow"}
-        """,sender, message);
-        server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), command);
+        String rawMessage = String.format("§e*<%s> %s", sender, message);
+        Collection<ServerPlayerEntity> PlayerList = server.getPlayerManager().getPlayerList();
+        for (ServerPlayerEntity player : PlayerList) {
+            player.sendMessage(Text.literal(rawMessage));
+        }
     }
 
     private static void HTTPGET(String url) throws IOException {
