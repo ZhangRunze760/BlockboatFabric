@@ -145,7 +145,7 @@ public class BlockboatFabric implements ModInitializer {
                         })
                         .then(literal("test")
                                 .executes(context -> {
-                                    sendCommand("list");
+                                    System.out.println(sendCommand("list"));
                                     sendCommand("say The command has been sended.");
                                     return 0;
                                 }))
