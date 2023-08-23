@@ -57,12 +57,12 @@ public class BlockboatFabric implements ModInitializer {
         //玩家登入登出事件注册开始
         ServerPlayConnectionEvents.JOIN.register(((handler, sender, server) -> {
             String playerName = handler.getPlayer().getName().getString();
-            sendMessage.sendMessageToGroup(String.format("%s 加入了游戏"));
+            sendMessage.sendMessageToGroup(String.format("%s 加入了游戏", playerName));
         }));
 
         ServerPlayConnectionEvents.DISCONNECT.register(((handler, server) -> {
             String playerName = handler.getPlayer().getName().getString();
-            sendMessage.sendMessageToGroup(String.format("%s 退出了游戏"));
+            sendMessage.sendMessageToGroup(String.format("%s 退出了游戏", playerName));
         }));
         //玩家登入登出事件注册结束
 
