@@ -119,6 +119,7 @@ public class BlockboatFabric implements ModInitializer {
                                                         .executes(context -> {
                                                             //这里调用了Fabric API的config对象。调用方法见下。
                                                             //BoolAgrumentType.getBool是为了获取前面所要求玩家输入的值。这里是boolean类型。
+                                                            //这里的value相当于是变量名，显示在MC命令的提示当中。
                                                             config.isQQSendEnabled = BoolArgumentType.getBool(context, "value");
                                                             //调用了下面定义的saveConfig()方法以保存配置文件。
                                                             saveConfig(config);
