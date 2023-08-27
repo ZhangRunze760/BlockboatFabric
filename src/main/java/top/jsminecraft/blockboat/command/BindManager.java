@@ -19,10 +19,10 @@ class Person {
 }
 
 public class BindManager {
-    private Map<String, Person> nameToPersonMap;
-    private Map<String, Person> idToPersonMap;
-    private String jsonFilePath;
-    private Gson gson;
+    private final Map<String, Person> nameToPersonMap;
+    private final Map<String, Person> idToPersonMap;
+    private final String jsonFilePath;
+    private final Gson gson;
 
     public BindManager(String jsonFilePath) {
         File FILE = new File(jsonFilePath);

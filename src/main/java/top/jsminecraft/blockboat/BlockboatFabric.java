@@ -216,12 +216,10 @@ public class BlockboatFabric implements ModInitializer {
         //qqbot命令注册结束
 
         //badapple!!命令注册开始
-        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(literal("badapple!!").executes(context -> {
-                context.getSource().sendMessage(Text.literal("Bad Apple!!播放功能正在开发（"));
-                return 0;
-            }));
-        }));
+        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> dispatcher.register(literal("badapple!!").executes(context -> {
+            context.getSource().sendMessage(Text.literal("Bad Apple!!播放功能正在开发（"));
+            return 0;
+        }))));
         //badapple!!命令注册结束
 
         //再次获取系统时间，完成计时。

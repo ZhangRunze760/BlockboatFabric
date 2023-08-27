@@ -9,50 +9,32 @@ public class CQParse {
 
     public static String replaceCQ(String rawMessage) {
         BindManager bindManager = new BindManager("config/blockboat-bind.json");
-        String regex = "\\[CQ:(\\w+)(,[^\\]]+)?\\]";
+        String regex = "\\[CQ:(\\w+)(,[^]]+)?]";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(rawMessage);
 
-        StringBuffer resultBuffer = new StringBuffer();
+        StringBuilder resultBuffer = new StringBuilder();
         while (matcher.find()) {
             String cqCode = matcher.group();
             String messageType = matcher.group(1);
             String messageParams = "";
             if (matcher.groupCount() > 1) messageParams = matcher.group(2);
             switch (messageType) {
-                case "at":
+                case "at" -> {
                     String qqID = extractQQNumber(messageParams);
                     if (bindManager.isBindById(qqID))
                         matcher.appendReplacement(resultBuffer, "@" + bindManager.findNameById(qqID) + " ");
                     else matcher.appendReplacement(resultBuffer, "[at]");
-                    break;
-                case "image":
-                    matcher.appendReplacement(resultBuffer, "【图片】");
-                    break;
-                case "reply":
-                    matcher.appendReplacement(resultBuffer, "【回复】");
-                    break;
-                case "record":
-                    matcher.appendReplacement(resultBuffer, "【语音】");
-                    break;
-                case "forward":
-                    matcher.appendReplacement(resultBuffer, "【合并转发】");
-                    break;
-                case "video":
-                    matcher.appendReplacement(resultBuffer, "【视频】");
-                    break;
-                case "music":
-                    matcher.appendReplacement(resultBuffer, "【音乐】");
-                    break;
-                case "redbag":
-                    matcher.appendReplacement(resultBuffer, "【红包】");
-                    break;
-                case "face":
-                    matcher.appendReplacement(resultBuffer, "【表情】");
-                    break;
-                default:
-                    matcher.appendReplacement(resultBuffer, "【未知】");
-                    break;
+                }
+                case "image" -> matcher.appendReplacement(resultBuffer, "【图片】");
+                case "reply" -> matcher.appendReplacement(resultBuffer, "【回复】");
+                case "record" -> matcher.appendReplacement(resultBuffer, "【语音】");
+                case "forward" -> matcher.appendReplacement(resultBuffer, "【合并转发】");
+                case "video" -> matcher.appendReplacement(resultBuffer, "【视频】");
+                case "music" -> matcher.appendReplacement(resultBuffer, "【音乐】");
+                case "redbag" -> matcher.appendReplacement(resultBuffer, "【红包】");
+                case "face" -> matcher.appendReplacement(resultBuffer, "【表情】");
+                default -> matcher.appendReplacement(resultBuffer, "【未知】");
             }
         }
         matcher.appendTail(resultBuffer);
