@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -12,19 +13,24 @@ import top.jsminecraft.blockboat.BlockboatFabric;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
 
+//获取QQ消息。
 public class GetQQMessage {
     private static final int PORT = BlockboatFabric.config.HttpPostPort;
-    public static BindManager bindManager = new BindManager();
+    public static BindManager bindManager = new BindManager("config/blockboat-bind.json");
     public static MinecraftServer server = null;
 
     public GetQQMessage() {
         startListening();
     }
 
+    @SneakyThrows
     public static String parseQQCommand(String message, Sender sender) {
+        //利用字符串处理QQ发生的命令。具体原理十分简单。
         String command = message.replace("sudo ", "");
         if (command.equals("list")) {
             Collection<ServerPlayerEntity> playerList = server.getPlayerManager().getPlayerList();
@@ -59,10 +65,10 @@ public class GetQQMessage {
                 case "cpx" -> {
                     return "吃屁筱屁吃";
                 }
-                case "米依", "米依M" -> {
+                case "米依", "米依M", "ChinaMiYiM", "miyim" -> {
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
                         player.sendMessage(Text.literal("§c米§e依§a吃§b屁"));
-                    return "[CQ:at,qq=3352452028] 米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁米依吃屁";
+                    return "[CQ:at,qq=3352452028] 米依吃屁";
                 }
                 case "红石", "zrz", "张润泽", "ZRZ" -> {
                     return "抱歉，不能给服务器技术人员吃屁。";
@@ -77,10 +83,11 @@ public class GetQQMessage {
         } else if (Objects.equals(sender.getRole(), "admin")) {
             server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), command);
             return "发送成功！";
-        } else return "发送失败！";
+        } else return "发送失败，权限不够！";
     }
 
     private void startListening() {
+        //利用sun的httpServer开始监听配置好的端口。
         HttpServer server;
         try {
             server = HttpServer.create(new InetSocketAddress(PORT), 0);
@@ -92,18 +99,19 @@ public class GetQQMessage {
     }
 
     private static class MessageHandler implements HttpHandler {
+        //收到POST上报时的反应。
         public SendMessage sendMessage = new SendMessage(BlockboatFabric.config.qqGroupID, BlockboatFabric.config.BOT_API_URL);
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             Gson jObject = new Gson();
-            String request = new String(exchange.getRequestBody().readAllBytes());
+            String request = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             JObject requestBody = jObject.fromJson(request, JObject.class);
             if (Objects.equals(requestBody.getPost_type(), "message") && Objects.equals(requestBody.getMessage_type(), "group") && Objects.equals(requestBody.getGroup_id(), BlockboatFabric.config.qqGroupID)) {
                 Sender sender = requestBody.getSender();
                 if (sender.getCard() != null) {
                     if (requestBody.getMessage().startsWith("sudo "))
-                        sendMessage.sendMessageToGroup(parseQQCommand(requestBody.getMessage(), sender));
+                        sendMessage.sendMessageToGroup(new String(parseQQCommand(requestBody.getMessage(), sender).getBytes(), Charset.forName("GBK")));
                     else
                         sendMessage.sendMCMessage(GetQQMessage.server, CQParse.replaceCQ(requestBody.getMessage()), sender.getCard());
                 } else

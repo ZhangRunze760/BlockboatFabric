@@ -23,17 +23,11 @@ dependencies {
 
         // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.11.0'
-    implementation group: 'org.nanohttpd', name: 'nanohttpd', version: '2.3.1'
-
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
-    implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.13'
 
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
+}
 
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
-    }
 
 processResources {
     inputs.property "version", project.version

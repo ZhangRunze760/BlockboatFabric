@@ -3,12 +3,13 @@ package top.jsminecraft.blockboat.command;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+//利用正则表达式处理CQ码。具体原理非常简单，不过多赘述。
 public class CQParse {
-    static BindManager bindManager = new BindManager();
+    static BindManager bindManager = new BindManager("config/blockboat-bind.json");
 
     public static String replaceCQ(String rawMessage) {
-        BindManager bindManager = new BindManager();
-        String regex = "\\[CQ:(\\w+)(,[^\\]]+)?\\]"; // 正则表达式匹配CQ码
+        BindManager bindManager = new BindManager("config/blockboat-bind.json");
+        String regex = "\\[CQ:(\\w+)(,[^\\]]+)?\\]";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(rawMessage);
 
@@ -21,8 +22,8 @@ public class CQParse {
             switch (messageType) {
                 case "at":
                     String qqID = extractQQNumber(messageParams);
-                    if (bindManager.IsIdBind(qqID))
-                        matcher.appendReplacement(resultBuffer, "@" + bindManager.getNameById(qqID) + " ");
+                    if (bindManager.isBindById(qqID))
+                        matcher.appendReplacement(resultBuffer, "@" + bindManager.findNameById(qqID) + " ");
                     else matcher.appendReplacement(resultBuffer, "[at]");
                     break;
                 case "image":

@@ -1,87 +1,109 @@
 package top.jsminecraft.blockboat.command;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BindManager {
-    private static final File FILE = new File("config/blockboat-bind.json");
-    private final ObjectMapper mapper = new ObjectMapper();
-    private Map<String, String> idToNameMap = new HashMap<>();
-    private Map<String, String> nameToIdMap = new HashMap<>();
+//机器人的绑定管理。整体原理非常简单，不过多赘述。
+class Person {
+    String name;
+    String id;
 
-    @SneakyThrows
-    public BindManager() {
-        if (FILE.exists()) {
+    Person(String name, String id) {
+        this.name = name;
+        this.id = id;
+    }
+}
+
+public class BindManager {
+    private Map<String, Person> nameToPersonMap;
+    private Map<String, Person> idToPersonMap;
+    private String jsonFilePath;
+    private Gson gson;
+
+    public BindManager(String jsonFilePath) {
+        File FILE = new File(jsonFilePath);
+        if (!FILE.exists()) {
             try {
-                Map<?, ?> map = mapper.readValue(FILE, Map.class);
-                idToNameMap = (Map<String, String>) map.get("idToNameMap");
-                nameToIdMap = (Map<String, String>) map.get("nameToIdMap");
+                FILE.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-        } else FILE.createNewFile();
+        }
+        this.jsonFilePath = jsonFilePath;
+        this.nameToPersonMap = new HashMap<>();
+        this.idToPersonMap = new HashMap<>();
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
+        loadFromFile();
     }
 
-    public boolean bind(String id, String name) {
-        if (idToNameMap.containsKey(id)) {
-            return false;
+    public boolean bind(String name, String id) {
+        if (isBindById(id)) return false;
+        else {
+            Person person = new Person(name, id);
+            nameToPersonMap.put(name, person);
+            idToPersonMap.put(id, person);
+            saveToFile();
+            return true;
         }
-        idToNameMap.put(id, name);
-        nameToIdMap.put(name, id);
-        saveToFile();
-        return true;
+    }
+
+    public void unbindByName(String name) {
+        Person person = nameToPersonMap.remove(name);
+        if (person != null) {
+            idToPersonMap.remove(person.id);
+            saveToFile();
+        }
     }
 
     public boolean unbindById(String id) {
-        if (!idToNameMap.containsKey(id)) {
-            return false;
+        Person person = idToPersonMap.remove(id);
+        if (person != null) {
+            nameToPersonMap.remove(person.name);
+            saveToFile();
+            return true;
         }
-        String name = idToNameMap.get(id);
-        idToNameMap.remove(id);
-        nameToIdMap.remove(name);
-        saveToFile();
-        return true;
+        else return false;
     }
 
-    public boolean unbindByName(String name) {
-        if (!nameToIdMap.containsKey(name)) {
-            return false;
+    public String findIdByName(String name) {
+        Person person = nameToPersonMap.get(name);
+        return person.id;
+    }
+
+    public String findNameById(String id) {
+        Person person = idToPersonMap.get(id);
+        return person.name;
+    }
+
+    public boolean isBindById(String id) {
+        return idToPersonMap.containsKey(id);
+    }
+
+    public boolean isBindByName(String name) {
+        return nameToPersonMap.containsKey(name);
+    }
+
+    private void loadFromFile() {
+        try (Reader reader = new FileReader(jsonFilePath)) {
+            Person[] people = gson.fromJson(reader, Person[].class);
+            if (people != null) {
+                for (Person person : people) {
+                    nameToPersonMap.put(person.name, person);
+                    idToPersonMap.put(person.id, person);
+                }
+            }
+        } catch (IOException e) {
+            // File doesn't exist or couldn't be read
         }
-        String id = nameToIdMap.get(name);
-        nameToIdMap.remove(name);
-        idToNameMap.remove(id);
-        saveToFile();
-        return true;
-    }
-
-    public boolean IsIdBind(String id) {
-        return idToNameMap.containsKey(id);
-    }
-
-    public String getNameById(String id) {
-        return idToNameMap.get(id);
-    }
-
-    public String printAll() {
-        StringBuilder Out = new StringBuilder("ID\tName\n");
-        for (String id : idToNameMap.keySet()) {
-            String name = idToNameMap.get(id);
-            Out.append(id).append("\t").append(name).append("\n");
-        }
-        return Out.toString();
     }
 
     private void saveToFile() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("idToNameMap", idToNameMap);
-        map.put("nameToIdMap", nameToIdMap);
-        try {
-            mapper.writeValue(FILE, map);
+        try (Writer writer = new FileWriter(jsonFilePath)) {
+            gson.toJson(nameToPersonMap.values(), writer);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -3,7 +3,7 @@ package top.jsminecraft.blockboat.command;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import okhttp3.OkHttpClient;
+import top.jsminecraft.blockboat.BlockboatFabric;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,8 +15,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
+//发送消息。整体原理非常简单，不过多赘述。
 public class SendMessage {
-    private static final OkHttpClient httpClient = new OkHttpClient();
     private final String group_id;
     private final String BOT_API_URL;
 
@@ -30,9 +30,7 @@ public class SendMessage {
         URLConnection urlConnection = new URL(url).openConnection();
         HttpURLConnection connection = (HttpURLConnection) urlConnection;
         connection.setRequestMethod("GET");
-        //连接
         connection.connect();
-        //得到响应码
         int responseCode = connection.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader
@@ -59,10 +57,12 @@ public class SendMessage {
     }
 
     public void sendMCMessage(MinecraftServer server, String message, String sender) {
-        String rawMessage = String.format("§e*<%s> %s", sender, message);
-        Collection<ServerPlayerEntity> PlayerList = server.getPlayerManager().getPlayerList();
-        for (ServerPlayerEntity player : PlayerList) {
-            player.sendMessage(Text.literal(rawMessage));
+        if (BlockboatFabric.config.isQQSendEnabled) {
+            String rawMessage = String.format("§e*<%s> %s", sender, message);
+            Collection<ServerPlayerEntity> PlayerList = server.getPlayerManager().getPlayerList();
+            for (ServerPlayerEntity player : PlayerList) {
+                player.sendMessage(Text.literal(rawMessage));
+            }
         }
     }
 }
