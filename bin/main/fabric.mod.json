@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "blockboat",
+  "version": "${version}",
+  "name": "BlockboatFabric",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/ZhangRunze760/BlockboatFabric"
+  },
+  "license": "Apache-2.0",
+  "icon": "assets/blockboat/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "top.jsminecraft.blockboat.client.BlockboatFabricClient"
+    ],
+    "main": [
+      "top.jsminecraft.blockboat.BlockboatFabric"
+    ]
+  },
+  "mixins": [
+    "blockboat.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

@@ -15,7 +15,6 @@ import net.minecraft.network.message.MessageType;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
@@ -39,7 +38,6 @@ public class BlockboatFabric implements ModInitializer {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     //Fabric API提供的模组配置对象，由此调用模组配置文件中的一切内容。
     public static ModConfig config;
-    private static ServerCommandSource source;
     //实例化SendMessage。
     private SendMessage sendMessage;
 
@@ -77,9 +75,6 @@ public class BlockboatFabric implements ModInitializer {
         }));
         //玩家登入登出事件注册结束
 
-        //配置消息接收器开始
-        //实例化，同上。
-        GetQQMessage getQQMessage = new GetQQMessage();
         ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
 
@@ -214,13 +209,6 @@ public class BlockboatFabric implements ModInitializer {
 
                 ));
         //qqbot命令注册结束
-
-        //badapple!!命令注册开始
-        CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> dispatcher.register(literal("badapple!!").executes(context -> {
-            context.getSource().sendMessage(Text.literal("Bad Apple!!播放功能正在开发（"));
-            return 0;
-        }))));
-        //badapple!!命令注册结束
 
         //再次获取系统时间，完成计时。
         double pass = (System.nanoTime() - starttime) / 1e9;

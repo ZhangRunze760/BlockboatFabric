@@ -26,7 +26,6 @@ public class SendMessage {
     }
 
     private static void HTTPGET(String url) throws IOException {
-        String content = null;
         URLConnection urlConnection = new URL(url).openConnection();
         HttpURLConnection connection = (HttpURLConnection) urlConnection;
         connection.setRequestMethod("GET");

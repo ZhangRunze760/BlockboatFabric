@@ -15,7 +15,6 @@ public class CQParse {
 
         StringBuilder resultBuffer = new StringBuilder();
         while (matcher.find()) {
-            String cqCode = matcher.group();
             String messageType = matcher.group(1);
             String messageParams = "";
             if (matcher.groupCount() > 1) messageParams = matcher.group(2);
@@ -24,7 +23,7 @@ public class CQParse {
                     String qqID = extractQQNumber(messageParams);
                     if (bindManager.isBindById(qqID))
                         matcher.appendReplacement(resultBuffer, "@" + bindManager.findNameById(qqID) + " ");
-                    else matcher.appendReplacement(resultBuffer, "[at]");
+                    else matcher.appendReplacement(resultBuffer, "【at】");
                 }
                 case "image" -> matcher.appendReplacement(resultBuffer, "【图片】");
                 case "reply" -> matcher.appendReplacement(resultBuffer, "【回复】");
