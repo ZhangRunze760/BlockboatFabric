@@ -1,10 +1,11 @@
-package top.jsminecraft.blockboat;
+package fun.jsserver.blockboat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import fun.jsserver.blockboat.command.SendMessage;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -19,23 +20,24 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import top.jsminecraft.blockboat.command.GetQQMessage;
-import top.jsminecraft.blockboat.command.SendMessage;
+import fun.jsserver.blockboat.command.GetQQMessage;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static net.minecraft.server.command.CommandManager.*;
+import static net.minecraft.server.command.CommandManager.literal;
 
 public class BlockboatFabric implements ModInitializer {
     //获取log4j2的logManager。可以通过这里调用到MC服务端的日志处理程序。
     public static final Logger LOGGER = LogManager.getLogger();
-    //获取Fabric的MinecraftServer实例。
-    public static MinecraftServer server = null;
     //利用Fabric API获取配置文件路径。
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("blockboat.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    //获取Fabric的MinecraftServer实例。
+    public static MinecraftServer server = null;
     //Fabric API提供的模组配置对象，由此调用模组配置文件中的一切内容。
     public static ModConfig config;
     //实例化SendMessage。
@@ -205,15 +207,35 @@ public class BlockboatFabric implements ModInitializer {
                                             context.getSource().sendMessage(Text.literal("§4不完整的命令"));
                                             return 0;
                                         }))
-                        //sendMessage子命令注册结束
+                                //sendMessage子命令注册结束
 
+                                //funidea子命令注册开始
+                                //本服的特色玩法，不得不品尝
+                                .then(literal("funidea")
+                                                //chipi子命令注册开始
+                                                .then(literal("chipi")
+                                                        .then(CommandManager.argument("message", StringArgumentType.string())
+                                                                .executes(context -> {
+                                                                    String Message = StringArgumentType.getString(context, "message");
+                                                                    if (!Message.contains("红石")) {
+                                                                        sendMessage.sendMessageToGroup(Message);
+                                                                        context.getSource().sendMessage(Text.literal("吃屁成功！"));
+                                                                    } else
+                                                                        context.getSource().sendMessage(Text.literal("抱歉，不能给mod作者吃屁。"));
+                                                                    return 0;
+                                                                }))
+                                                )
+                                        //chipi子命令注册结束
+                                )
+                        //funidea子命令注册结束
                 ));
         //qqbot命令注册结束
 
         //再次获取系统时间，完成计时。
         double pass = (System.nanoTime() - starttime) / 1e9;
-        LOGGER.info(String.format("加载完成！耗时：%.2f秒。", pass));
+        LOGGER.info(String.format("加载完成！耗时：%.4f秒，轻巧的Blockboat快如闪电！", pass));
     }
+
     //定义各个事件响应方法开始
     //这里是当玩家发送消息时所调用的方法。具体不过多赘述。
     private void onServerChatMessage(SignedMessage signedMessage, ServerPlayerEntity player, MessageType.Parameters parameters) {

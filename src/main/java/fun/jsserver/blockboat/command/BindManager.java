@@ -1,4 +1,4 @@
-package top.jsminecraft.blockboat.command;
+package fun.jsserver.blockboat.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

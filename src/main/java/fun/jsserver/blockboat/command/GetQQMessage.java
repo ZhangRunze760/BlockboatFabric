@@ -1,15 +1,15 @@
-package top.jsminecraft.blockboat.command;
+package fun.jsserver.blockboat.command;
 
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import fun.jsserver.blockboat.BlockboatFabric;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import top.jsminecraft.blockboat.BlockboatFabric;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

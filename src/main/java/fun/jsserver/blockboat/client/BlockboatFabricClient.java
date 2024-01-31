@@ -1,4 +1,4 @@
-package top.jsminecraft.blockboat.client;
+package fun.jsserver.blockboat.client;
 
 import net.fabricmc.api.ModInitializer;
 

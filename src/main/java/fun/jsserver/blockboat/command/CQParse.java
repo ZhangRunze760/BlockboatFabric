@@ -1,4 +1,4 @@
-package top.jsminecraft.blockboat.command;
+package fun.jsserver.blockboat.command;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

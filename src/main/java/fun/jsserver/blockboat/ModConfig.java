@@ -1,4 +1,4 @@
-package top.jsminecraft.blockboat;
+package fun.jsserver.blockboat;
 
 import com.google.gson.annotations.SerializedName;
 
