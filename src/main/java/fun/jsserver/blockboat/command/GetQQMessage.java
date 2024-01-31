@@ -62,9 +62,6 @@ public class GetQQMessage {
         } else if (command.startsWith("chipi ")) {
             String chipier = command.replace("chipi ", "");
             switch (chipier) {
-                case "cpx" -> {
-                    return "吃屁筱屁吃";
-                }
                 case "米依", "米依M", "ChinaMiYiM", "miyim" -> {
                     for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
                         player.sendMessage(Text.literal("§c米§e依§a吃§b屁"));
