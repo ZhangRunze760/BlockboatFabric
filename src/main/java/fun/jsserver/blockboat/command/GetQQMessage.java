@@ -89,6 +89,7 @@ public class GetQQMessage {
         try {
             server = HttpServer.create(new InetSocketAddress(PORT), 0);
             server.createContext("/", new MessageHandler());
+            BlockboatFabric.LOGGER.info(String.format("Blockboat 将会开始监听 %d 端口。", PORT));
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,20 +142,40 @@ class JObject {
         this.group_id = group_id;
     }
 
+    public String getPost_type() {
+        return this.post_type;
+    }
+
     public void setPost_type(String post_type) {
         this.post_type = post_type;
+    }
+
+    public String getMessage_type() {
+        return this.message_type;
     }
 
     public void setMessage_type(String message_type) {
         this.message_type = message_type;
     }
 
+    public String getMessage() {
+        return this.message;
+    }
+
     public void setMessage(String message) {
         this.message = message;
     }
 
+    public Sender getSender() {
+        return this.sender;
+    }
+
     public void setSender(Sender sender) {
         this.sender = sender;
+    }
+
+    public String getGroup_id() {
+        return this.group_id;
     }
 
     public void setGroup_id(String group_id) {
@@ -176,16 +197,32 @@ class Sender {
         this.user_id = user_id;
     }
 
+    public String getNickname() {
+        return this.nickname;
+    }
+
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public String getCard() {
+        return this.card;
     }
 
     public void setCard(String card) {
         this.card = card;
     }
 
+    public String getRole() {
+        return this.role;
+    }
+
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getUser_id() {
+        return this.user_id;
     }
 
     public void setUser_id(String user_id) {

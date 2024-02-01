@@ -1,10 +1,11 @@
 package fun.jsserver.blockboat.client;
 
+import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 
-public class BlockboatFabricClient implements ModInitializer {
+public class BlockboatFabricClient implements ClientModInitializer {
     @Override
-    public void onInitialize() {
+    public void onInitializeClient() {
 
     }
 }

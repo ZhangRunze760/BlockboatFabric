@@ -7,12 +7,19 @@ import com.google.gson.annotations.SerializedName;
 
 public class ModConfig {
     @SerializedName("isQQSendEnabled")
-    public boolean isQQSendEnabled = true;
+    public boolean isQQSendEnabled;
     @SerializedName("isMCSendEnabled")
-    public boolean isMCSendEnabled = true;
+    public boolean isMCSendEnabled;
     @SerializedName("qqGroupID")
-    public String qqGroupID = "123456";
-    public String BOT_API_URL = "http://127.0.0.1:5700";
-    public int HttpPostPort = 5710;
+    public String qqGroupID;
+    public String BOT_API_URL;
+    public int HttpPostPort;
 
+    public ModConfig() {
+        this.isQQSendEnabled = true;
+        this.isMCSendEnabled = true;
+        this.qqGroupID = "123456";
+        this.BOT_API_URL = "http://127.0.0.1:5700";
+        this.HttpPostPort = 5710;
+    }
 }

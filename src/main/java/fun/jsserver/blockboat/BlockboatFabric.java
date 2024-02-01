@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import fun.jsserver.blockboat.command.GetQQMessage;
 import fun.jsserver.blockboat.command.SendMessage;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -20,11 +21,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import fun.jsserver.blockboat.command.GetQQMessage;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -45,7 +43,7 @@ public class BlockboatFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-
+        System.out.println(new ModConfig());
         //机器人初始化配置并注册服务器生命周期事件开始
         //调用LOGGER，输出一段日志内容
         LOGGER.info("正在加载Blockboat...");
@@ -95,13 +93,13 @@ public class BlockboatFabric implements ModInitializer {
                                             //context.getSource()显然是获取命令发送源，sendMessage()方法可以向发送源发生一段字符串。
                                             //这里仍然需要提供Text而非String类型。
                                             //当然，如果是在服务端控制台发送，那这里的消息当然就是作为命令回显显示，其他发生方法（如Rcon）同理。
-                                            context.getSource().sendMessage(Text.literal("==================================================="));
+                                            context.getSource().sendMessage(Text.literal("========================================================"));
                                             context.getSource().sendMessage(Text.literal("               §6Blockboat QQ互通机器人"));
                                             context.getSource().sendMessage(Text.literal("                  作者：ZhangRunze760"));
                                             context.getSource().sendMessage(Text.literal("项目地址：https://github.com/ZhangRunze760/BlockboatFabric"));
                                             context.getSource().sendMessage(Text.literal("             Apache License, Version 2.0"));
                                             context.getSource().sendMessage(Text.literal("                 All Rights Reserved."));
-                                            context.getSource().sendMessage(Text.literal("==================================================="));
+                                            context.getSource().sendMessage(Text.literal("========================================================="));
                                             return 0;
                                         }))
                                 //credits子命令注册结束
@@ -188,6 +186,7 @@ public class BlockboatFabric implements ModInitializer {
 
                                 .then(literal("reload").executes(context -> {
                                     config = loadConfig();
+                                    context.getSource().sendMessage(Text.literal("机器人配置文件重载成功！"));
                                     return 0;
                                 }))
 
@@ -224,7 +223,15 @@ public class BlockboatFabric implements ModInitializer {
                                                                         context.getSource().sendMessage(Text.literal("抱歉，不能给mod作者吃屁。"));
                                                                     return 0;
                                                                 }))
+                                                        .executes(context -> {
+                                                            context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                                                            return 0;
+                                                        })
                                                 )
+                                                .executes(context -> {
+                                                            context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                                                            return 0;
+                                                        })
                                         //chipi子命令注册结束
                                 )
                         //funidea子命令注册结束
@@ -266,7 +273,9 @@ public class BlockboatFabric implements ModInitializer {
     //定义模组配置文件操作开始
     private ModConfig loadConfig() {
         if (!Files.exists(CONFIG_PATH)) {
-            saveConfig(new ModConfig());
+            config = new ModConfig();
+            saveConfig(config);
+            LOGGER.error("初次启动，请进入游戏使用\"/qqbot config\"命令修改配置后使用\"/qqbot reload\"重载机器人！");
         }
 
         try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
@@ -277,14 +286,15 @@ public class BlockboatFabric implements ModInitializer {
         }
     }
 
-    private void saveConfig(ModConfig config) {
-        Writer writer;
+    private void saveConfig(ModConfig config){
         try {
-            writer = Files.newBufferedWriter(CONFIG_PATH);
+            System.out.println(CONFIG_PATH);
+            FileWriter writer = new FileWriter(CONFIG_PATH.toFile());
+            GSON.toJson(config, writer);
+            writer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        GSON.toJson(config, writer);
     }
     //定义模组配置文件操作结束
 }
