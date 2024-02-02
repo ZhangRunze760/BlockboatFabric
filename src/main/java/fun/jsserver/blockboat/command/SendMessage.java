@@ -39,7 +39,7 @@ public class SendMessage {
                 }
             }
         } catch (ConnectException e) {
-            BlockboatFabric.LOGGER.warn("无法连接至CQHTTP，机器人网络模块将不会启动。");
+            BlockboatFabric.LOGGER.warn("无法连接至CQHTTP，机器人网络模块将不会启动。请修改配置后再次尝试。");
         }
     }
 
@@ -58,7 +58,7 @@ public class SendMessage {
 
     public void sendMCMessage(MinecraftServer server, String message, String sender) {
         if (BlockboatFabric.config.isQQSendEnabled) {
-            String rawMessage = String.format("§e*<%s> %s", sender, message);
+            String rawMessage = String.format("*<%s> %s", sender, message);
             Collection<ServerPlayerEntity> PlayerList = server.getPlayerManager().getPlayerList();
             for (ServerPlayerEntity player : PlayerList) {
                 player.sendMessage(Text.literal(rawMessage));

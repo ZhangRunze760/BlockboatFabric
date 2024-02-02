@@ -12,14 +12,18 @@ public class ModConfig {
     public boolean isMCSendEnabled;
     @SerializedName("qqGroupID")
     public String qqGroupID;
+    @SerializedName("BOT_API_URL")
     public String BOT_API_URL;
+    @SerializedName("HttpPostPort")
     public int HttpPostPort;
-
+    @SerializedName("listenWhenStart")
+    public boolean listenWhenStart;
     public ModConfig() {
         this.isQQSendEnabled = true;
         this.isMCSendEnabled = true;
         this.qqGroupID = "123456";
         this.BOT_API_URL = "http://127.0.0.1:5700";
         this.HttpPostPort = 5710;
+        this.listenWhenStart = true;
     }
 }

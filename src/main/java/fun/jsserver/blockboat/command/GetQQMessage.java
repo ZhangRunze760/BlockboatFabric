@@ -13,7 +13,6 @@ import net.minecraft.text.Text;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Objects;
@@ -44,7 +43,10 @@ public class GetQQMessage {
                         在线玩家：%s
                         """, playerList.size(), playerListStr);
             } else return "服务器当前在线人数：0";
-        } else if (command.startsWith("bind ")) {
+        }
+        else if (command.equals("chipi")) return String.format("%s吃屁", sender.getCard());
+
+        else if (command.startsWith("bind ")) {
             if (command.replace("bind ", "").contains(" ")) return "不支持带有空格的游戏ID。";
             else {
                 boolean result = bindManager.bind(sender.getUser_id(), command.replace("bind ", ""));
@@ -109,7 +111,7 @@ public class GetQQMessage {
                 Sender sender = requestBody.getSender();
                 if (sender.getCard() != null) {
                     if (requestBody.getMessage().startsWith("sudo "))
-                        sendMessage.sendMessageToGroup(new String(parseQQCommand(requestBody.getMessage(), sender).getBytes(), Charset.forName("GBK")));
+                        sendMessage.sendMessageToGroup(new String(parseQQCommand(requestBody.getMessage(), sender).getBytes(), StandardCharsets.UTF_8));
                     else
                         sendMessage.sendMCMessage(GetQQMessage.server, CQParse.replaceCQ(requestBody.getMessage()), sender.getCard());
                 } else

@@ -22,7 +22,9 @@ import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -77,6 +79,8 @@ public class BlockboatFabric implements ModInitializer {
 
         ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
+
+        if (config.listenWhenStart) new GetQQMessage();
 
         //qqbot命令注册开始
         //调用了Fabric API的执行命令事件，当玩家执行了这个命令时触发。
@@ -207,34 +211,35 @@ public class BlockboatFabric implements ModInitializer {
                                             return 0;
                                         }))
                                 //sendMessage子命令注册结束
-
-                                //funidea子命令注册开始
+                                .then(literal("startListen")
+                                        .executes(context -> {
+                                            new GetQQMessage();
+                                            context.getSource().sendMessage(Text.literal(String.format("开始尝试监听 %d 端口。", config.HttpPostPort)));
+                                            return 0;
+                                        }))
                                 //本服的特色玩法，不得不品尝
-                                .then(literal("funidea")
-                                                //chipi子命令注册开始
-                                                .then(literal("chipi")
-                                                        .then(CommandManager.argument("message", StringArgumentType.string())
-                                                                .executes(context -> {
-                                                                    String Message = StringArgumentType.getString(context, "message");
-                                                                    if (!Message.contains("红石")) {
-                                                                        sendMessage.sendMessageToGroup(Message);
-                                                                        context.getSource().sendMessage(Text.literal("吃屁成功！"));
-                                                                    } else
-                                                                        context.getSource().sendMessage(Text.literal("抱歉，不能给mod作者吃屁。"));
-                                                                    return 0;
-                                                                }))
+                                //chipi子命令注册开始
+                                        .then(literal("chipi")
+                                                .then(CommandManager.argument("message", StringArgumentType.string())
                                                         .executes(context -> {
-                                                            context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                                                            String Message = StringArgumentType.getString(context, "message");
+                                                            if (!Message.contains("红石")) {
+                                                                sendMessage.sendMessageToGroup(Message + "吃屁！");
+                                                                context.getSource().sendMessage(Text.literal("吃屁成功！"));
+                                                            } else
+                                                                context.getSource().sendMessage(Text.literal("抱歉，不能给mod作者吃屁。"));
                                                             return 0;
-                                                        })
-                                                )
+                                                        }))
                                                 .executes(context -> {
-                                                            context.getSource().sendMessage(Text.literal("§4不完整的命令"));
-                                                            return 0;
-                                                        })
-                                        //chipi子命令注册结束
-                                )
-                        //funidea子命令注册结束
+                                                    context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                                                    return 0;
+                                                })
+                                        )
+                                .executes(context -> {
+                                    context.getSource().sendMessage(Text.literal("§4不完整的命令"));
+                                    return 0;
+                                })
+                                //chipi子命令注册结束
                 ));
         //qqbot命令注册结束
 
