@@ -44,16 +44,8 @@ public class SendMessage {
     }
 
     public void sendMessageToGroup(String message) {
-        String apiUrl = BOT_API_URL + "/send_group_msg";
-        String GETBody;
-        GETBody = String.format("""
-                ?group_id=%s&message=%s
-                """, group_id, URLEncoder.encode(message, StandardCharsets.UTF_8));
-        try {
-            HTTPGET(apiUrl + GETBody);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        SendMessageThread thread = new SendMessageThread(message);
+        thread.start();
     }
 
     public void sendMCMessage(MinecraftServer server, String message, String sender) {
@@ -65,4 +57,22 @@ public class SendMessage {
             }
         }
     }
+
+    public class SendMessageThread extends Thread {
+        String message;
+        public SendMessageThread(String message) { this.message = message; }
+        public void run() {
+            String apiUrl = BOT_API_URL + "/send_group_msg";
+            String GETBody;
+            GETBody = String.format("""
+                ?group_id=%s&message=%s
+                """, group_id, URLEncoder.encode(message, StandardCharsets.UTF_8));
+            try {
+                HTTPGET(apiUrl + GETBody);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }
+
