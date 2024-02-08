@@ -41,7 +41,7 @@ public class BlockboatFabric implements ModInitializer {
     //Fabric API提供的模组配置对象，由此调用模组配置文件中的一切内容。
     public static ModConfig config;
     //实例化SendMessage。
-    private SendMessage sendMessage;
+    public static SendMessage sendMessage;
 
     @Override
     public void onInitialize() {
@@ -176,6 +176,18 @@ public class BlockboatFabric implements ModInitializer {
                                                         }))
                                                 .executes(context -> {
                                                     context.getSource().sendMessage(Text.literal(String.format("HttpPostPort = %d", config.HttpPostPort)));
+                                                    return 1;
+                                                }))
+                                        .then(literal("ListenCommand")
+                                                .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                        .executes(context -> {
+                                                            config.ListenCommand = BoolArgumentType.getBool(context, "value");
+                                                            saveConfig(config);
+                                                            context.getSource().sendMessage(Text.literal("成功设置"));
+                                                            return 0;
+                                                        }))
+                                                .executes(context -> {
+                                                    context.getSource().sendMessage(Text.literal(String.format("ListenCommand = %b", config.ListenCommand)));
                                                     return 1;
                                                 }))
                                         .executes(context -> {

@@ -4,6 +4,7 @@
   "package": "fun.jsserver.blockboat.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "CommandManagerMixin"
   ],
   "client": [
   ],
