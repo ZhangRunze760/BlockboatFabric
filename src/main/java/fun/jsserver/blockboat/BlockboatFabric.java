@@ -45,7 +45,6 @@ public class BlockboatFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        System.out.println(new ModConfig());
         //机器人初始化配置并注册服务器生命周期事件开始
         //调用LOGGER，输出一段日志内容
         LOGGER.info("正在加载Blockboat...");
@@ -79,6 +78,8 @@ public class BlockboatFabric implements ModInitializer {
 
         ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
+
+
 
         if (config.listenWhenStart) new GetQQMessage();
 
