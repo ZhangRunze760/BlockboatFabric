@@ -49,7 +49,11 @@ public class GetQQMessage {
         else if (command.startsWith("bind ")) {
             if (command.replace("bind ", "").contains(" ")) return "不支持带有空格的游戏ID。";
             else {
-                boolean result = bindManager.bind(sender.getUser_id(), command.replace("bind ", ""));
+                String name = command.replace("bind ", "");
+                boolean result = bindManager.bind(sender.getUser_id(), name);
+                String wlcommand = "easywhitelist add " + name;
+                server.getCommandSource().getDispatcher().parse(wlcommand, server.getCommandSource());
+                server.getCommandSource().getDispatcher().parse("whitelist reload", server.getCommandSource());
                 if (result) return "绑定成功！";
                 else return "绑定失败，ID已绑定。单个QQ号只能绑定一个ID。";
             }
@@ -144,40 +148,20 @@ class JObject {
         this.group_id = group_id;
     }
 
-    public String getPost_type() {
-        return this.post_type;
-    }
-
     public void setPost_type(String post_type) {
         this.post_type = post_type;
-    }
-
-    public String getMessage_type() {
-        return this.message_type;
     }
 
     public void setMessage_type(String message_type) {
         this.message_type = message_type;
     }
 
-    public String getMessage() {
-        return this.message;
-    }
-
     public void setMessage(String message) {
         this.message = message;
     }
 
-    public Sender getSender() {
-        return this.sender;
-    }
-
     public void setSender(Sender sender) {
         this.sender = sender;
-    }
-
-    public String getGroup_id() {
-        return this.group_id;
     }
 
     public void setGroup_id(String group_id) {
