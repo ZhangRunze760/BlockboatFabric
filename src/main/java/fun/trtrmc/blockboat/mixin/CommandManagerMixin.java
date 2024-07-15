@@ -1,7 +1,7 @@
-package fun.jsserver.blockboat.mixin;
+package fun.trtrmc.blockboat.mixin;
 
 import com.mojang.brigadier.ParseResults;
-import fun.jsserver.blockboat.BlockboatFabric;
+import fun.trtrmc.blockboat.BlockboatFabric;
 import net.minecraft.server.command.ServerCommandSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

@@ -1,4 +1,4 @@
-package fun.jsserver.blockboat.command;
+package fun.trtrmc.blockboat.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

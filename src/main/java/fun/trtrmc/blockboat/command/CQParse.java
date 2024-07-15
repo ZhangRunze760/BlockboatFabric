@@ -1,4 +1,4 @@
-package fun.jsserver.blockboat.command;
+package fun.trtrmc.blockboat.command;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

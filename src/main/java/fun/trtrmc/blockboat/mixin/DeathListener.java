@@ -1,6 +1,6 @@
-package fun.jsserver.blockboat.mixin;
+package fun.trtrmc.blockboat.mixin;
 
-import fun.jsserver.blockboat.BlockboatFabric;
+import fun.trtrmc.blockboat.BlockboatFabric;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;

@@ -13,10 +13,10 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "fun.jsserver.blockboat.client.BlockboatFabricClient"
+      "fun.trtrmc.blockboat.client.BlockboatFabricClient"
     ],
     "main": [
-      "fun.jsserver.blockboat.BlockboatFabric"
+      "fun.trtrmc.blockboat.BlockboatFabric"
     ]
   },
   "mixins": [

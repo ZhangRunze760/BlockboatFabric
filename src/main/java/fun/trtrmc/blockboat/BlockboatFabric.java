@@ -1,12 +1,12 @@
-package fun.jsserver.blockboat;
+package fun.trtrmc.blockboat;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import fun.jsserver.blockboat.command.GetQQMessage;
-import fun.jsserver.blockboat.command.SendMessage;
+import fun.trtrmc.blockboat.command.GetQQMessage;
+import fun.trtrmc.blockboat.command.SendMessage;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -51,7 +51,6 @@ public class BlockboatFabric implements ModInitializer {
         //获取系统时间，达到计时的效果。注意这里单位为纳秒。
         long starttime = System.nanoTime();
         //利用Fabric API注册服务器的生命周期事件。发生时调用对应的方法。
-        ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarting);
         ServerLifecycleEvents.SERVER_STARTED.register(this::onServerStarted);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
         ServerLifecycleEvents.SERVER_STOPPED.register(this::onServerStopped);
@@ -89,28 +88,7 @@ public class BlockboatFabric implements ModInitializer {
                 //注册命令。这里提供了主命令的字符串（即“qqbot”），注意要转换为Minecraft中的Text类型。
                 //这里提供的字符串是主命令的一个可选参数。如果要执行者自定义发生参数，添加方法见下。
                 dispatcher.register(literal("qqbot")
-                                //credits子命令注册开始
-                                //这里可以添加子命令，添加方法见下。
-                                //提供字符串的方法和上面一样，同样是将String转换为Text。
-                                .then(literal("credits")
-                                        //这里是需要执行的方法。具体用法见下。
-                                        .executes(context -> {
-                                            //context.getSource()显然是获取命令发送源，sendMessage()方法可以向发送源发生一段字符串。
-                                            //这里仍然需要提供Text而非String类型。
-                                            //当然，如果是在服务端控制台发送，那这里的消息当然就是作为命令回显显示，其他发生方法（如Rcon）同理。
-                                            context.getSource().sendMessage(Text.literal("========================================================"));
-                                            context.getSource().sendMessage(Text.literal("               §6Blockboat QQ互通机器人"));
-                                            context.getSource().sendMessage(Text.literal("                  作者：ZhangRunze760"));
-                                            context.getSource().sendMessage(Text.literal("项目地址：https://github.com/ZhangRunze760/BlockboatFabric"));
-                                            context.getSource().sendMessage(Text.literal("             Apache License, Version 2.0"));
-                                            context.getSource().sendMessage(Text.literal("                 All Rights Reserved."));
-                                            context.getSource().sendMessage(Text.literal("========================================================="));
-                                            return 0;
-                                        }))
-                                //credits子命令注册结束
-
                                 //config子命令注册开始
-                                //同上。
                                 .then(literal("config")
                                         //子命令当中当然也可以继续添加子命令。
                                         .then(literal("isQQSendEnabled")
@@ -229,30 +207,11 @@ public class BlockboatFabric implements ModInitializer {
                                             new GetQQMessage();
                                             context.getSource().sendMessage(Text.literal(String.format("开始尝试监听 %d 端口。", config.HttpPostPort)));
                                             return 0;
-                                        }))
-                                //本服的特色玩法，不得不品尝
-                                //chipi子命令注册开始
-                                        .then(literal("chipi")
-                                                .then(CommandManager.argument("message", StringArgumentType.string())
-                                                        .executes(context -> {
-                                                            String Message = StringArgumentType.getString(context, "message");
-                                                            if (!Message.contains("红石")) {
-                                                                sendMessage.sendMessageToGroup(Message + "吃屁！");
-                                                                context.getSource().sendMessage(Text.literal("吃屁成功！"));
-                                                            } else
-                                                                context.getSource().sendMessage(Text.literal("抱歉，不能给mod作者吃屁。"));
-                                                            return 0;
-                                                        }))
-                                                .executes(context -> {
-                                                    context.getSource().sendMessage(Text.literal("§4不完整的命令"));
-                                                    return 0;
-                                                })
-                                        )
+                                        })
                                 .executes(context -> {
                                     context.getSource().sendMessage(Text.literal("§4不完整的命令"));
                                     return 0;
-                                })
-                                //chipi子命令注册结束
+                                }))
                 ));
         //qqbot命令注册结束
 
@@ -269,13 +228,9 @@ public class BlockboatFabric implements ModInitializer {
         if (config.isMCSendEnabled) sendMessage.sendMessageToGroup(String.format("<%s> %s", sender, message));
     }
 
-    private void onServerStarting(MinecraftServer server) {
+    private void onServerStarted(MinecraftServer server) {
         BlockboatFabric.server = server;
         GetQQMessage.server = server;
-        sendMessage.sendMessageToGroup("服务器正在开启...");
-    }
-
-    private void onServerStarted(MinecraftServer server) {
         sendMessage.sendMessageToGroup("服务器开启成功！");
     }
 

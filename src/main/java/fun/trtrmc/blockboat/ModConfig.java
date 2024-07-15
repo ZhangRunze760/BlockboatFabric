@@ -1,4 +1,4 @@
-package fun.jsserver.blockboat;
+package fun.trtrmc.blockboat;
 
 import com.google.gson.annotations.SerializedName;
 

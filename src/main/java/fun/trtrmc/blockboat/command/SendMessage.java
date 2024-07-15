@@ -1,9 +1,9 @@
-package fun.jsserver.blockboat.command;
+package fun.trtrmc.blockboat.command;
 
+import fun.trtrmc.blockboat.BlockboatFabric;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import fun.jsserver.blockboat.BlockboatFabric;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,10 +1,10 @@
-package fun.jsserver.blockboat.command;
+package fun.trtrmc.blockboat.command;
 
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import fun.jsserver.blockboat.BlockboatFabric;
+import fun.trtrmc.blockboat.BlockboatFabric;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.minecraft.server.MinecraftServer;
@@ -44,42 +44,24 @@ public class GetQQMessage {
                         """, playerList.size(), playerListStr);
             } else return "服务器当前在线人数：0";
         }
-        else if (command.equals("chipi")) return String.format("%s吃屁", sender.getCard());
-
         else if (command.startsWith("bind ")) {
             if (command.replace("bind ", "").contains(" ")) return "不支持带有空格的游戏ID。";
             else {
                 boolean result = bindManager.bind(sender.getUser_id(), command.replace("bind ", ""));
-                if (result) return "绑定成功！";
+                if (result) {
+                    String bindcmd1 = "easywhitelist add " + command.replace("bind ", "");
+                    String bindcmd2 = "whitelist reload";
+                    server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), bindcmd1);
+                    server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), bindcmd2);
+                    return "绑定成功！";
+                }
                 else return "绑定失败，ID已绑定。单个QQ号只能绑定一个ID。";
             }
         } else if (command.startsWith("unbind")) {
             boolean result = bindManager.unbindById(sender.getUser_id());
             if (result) return "解绑成功！";
             else return "解绑失败，账号没有绑定过ID。";
-        } else if (command.startsWith("iist") || command.startsWith("Iist")) {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
-                player.sendMessage(Text.literal("§c米§e依§a吃§b屁"));
-            return "[CQ:at,qq=3352452028] 米依吃屁";
-        } else if (command.startsWith("chipi ")) {
-            String chipier = command.replace("chipi ", "");
-            switch (chipier) {
-                case "米依", "米依M", "ChinaMiYiM", "miyim" -> {
-                    for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList())
-                        player.sendMessage(Text.literal("§c米§e依§a吃§b屁"));
-                    return "[CQ:at,qq=3352452028] 米依吃屁";
-                }
-                case "红石", "zrz", "张润泽", "ZRZ" -> {
-                    return "抱歉，不能给服务器技术人员吃屁。";
-                }
-                case "destiny", "天眼" -> {
-                    return String.format("抱歉，不能给机器人吃屁，所以，%s吃屁。", sender.getCard());
-                }
-                default -> {
-                    return chipier;
-                }
-            }
-        } else if (Objects.equals(sender.getRole(), "admin")) {
+        } else if (Objects.equals(sender.getRole(), "admin") || Objects.equals(sender.getRole(), "owner")) {
             server.getCommandManager().execute(server.getCommandManager().getDispatcher().parse(command, server.getCommandSource()), command);
             return "发送成功！";
         } else return "发送失败，权限不够！";
