@@ -9,12 +9,8 @@
     "repo": "https://github.com/ZhangRunze760/BlockboatFabric"
   },
   "license": "Apache-2.0",
-  "icon": "assets/blockboat/icon.png",
   "environment": "*",
   "entrypoints": {
-    "client": [
-      "fun.trtrmc.blockboat.client.BlockboatFabricClient"
-    ],
     "main": [
       "fun.trtrmc.blockboat.BlockboatFabric"
     ]
