@@ -81,6 +81,8 @@ public class GetQQMessage {
     }
 
     private class QQBot extends WebSocketServer {
+        @Getter
+        private WebSocket conn = null;
         private static final Gson gson = new Gson();
 
         public QQBot(InetSocketAddress serverAddress) {
@@ -89,24 +91,27 @@ public class GetQQMessage {
 
         @Override
         public void onOpen(WebSocket conn, ClientHandshake handshakedata) {
-            LOGGER.info("WebSocket连接已建立！");
+            if(this.conn == null) {
+                this.conn = conn;
+                LOGGER.info("WebSocket连接已建立！");
+            }
+            else conn.close();
         }
 
         @Override
         public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-            LOGGER.info("WebSocket服务器已关闭。");
+            LOGGER.info("WebSocket连接已关闭。");
+            if(this.conn == conn) this.conn = null;
         }
 
         @Override
         public void onMessage(WebSocket conn, String message) {
-
-            LOGGER.info("WebSocket收到消息：" + message);
-
             JsonObject json = gson.fromJson(message, JsonObject.class);
             String postType = json.get("post_type").getAsString();
             String messageType = postType.equals("message") ? json.get("message_type").getAsString() : null;
+            String groupId = (postType.equals("message") && messageType.equals("group")) ? json.get("groupId").getAsString() : null;
 
-            if (postType.equals("message") && messageType.equals("group")) {
+            if (postType.equals("message") && messageType.equals("group") && groupId.equals(BlockboatFabric.config.qqGroupID)) {
                 String userId = json.get("user_id").getAsString();
                 String msg = json.get("raw_message").getAsString();
                 JsonObject sender = json.get("sender").getAsJsonObject();
@@ -115,9 +120,7 @@ public class GetQQMessage {
                 String card = sender.get("card").getAsString();
                 String role = sender.get("role").getAsString();
 
-
                 String parsedMsg = CQParse.replaceCQ(msg);
-
                 Sender senderFormat = new Sender(nickname, card, role, userId);
 
                 if (parsedMsg.startsWith("sudo ")) {
@@ -125,6 +128,7 @@ public class GetQQMessage {
                    sendMessage.sendMessageToGroup(returnMsg);
                 }
                 sendMessage.sendMCMessage(server, parsedMsg, nickname);
+                LOGGER.info("转发QQ消息：" + parsedMsg);
             }
         }
 
