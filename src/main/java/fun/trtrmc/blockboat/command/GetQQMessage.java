@@ -4,20 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import fun.trtrmc.blockboat.BlockboatFabric;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.java_websocket.WebSocket;
-import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.handshake.ServerHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -27,7 +24,7 @@ public class GetQQMessage {
     public static BindManager bindManager = new BindManager("config/blockboat-bind.json");
     public static MinecraftServer server = null;
     private static final Logger LOGGER = LogManager.getLogger();
-    private SendMessage sendMessage = BlockboatFabric.sendMessage;
+    private final SendMessage sendMessage = BlockboatFabric.sendMessage;
 
     private static QQBot bot;
     public GetQQMessage() {
@@ -146,6 +143,7 @@ public class GetQQMessage {
 }
 
 @Getter
+@Setter
 class JObject {
     private String post_type;
     private String message_type;
@@ -160,53 +158,16 @@ class JObject {
         this.sender = sender;
         this.group_id = group_id;
     }
-
-    public String getPost_type() {
-        return this.post_type;
-    }
-
-    public void setPost_type(String post_type) {
-        this.post_type = post_type;
-    }
-
-    public String getMessage_type() {
-        return this.message_type;
-    }
-
-    public void setMessage_type(String message_type) {
-        this.message_type = message_type;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Sender getSender() {
-        return this.sender;
-    }
-
-    public void setSender(Sender sender) {
-        this.sender = sender;
-    }
-
-    public String getGroup_id() {
-        return this.group_id;
-    }
-
-    public void setGroup_id(String group_id) {
-        this.group_id = group_id;
-    }
 }
 
 @Getter
+@Setter
 class Sender {
     private String nickname;
     private String card;
+    @Getter
     private String role;
+    @Getter
     private String user_id;
 
     public Sender(String nickname, String card, String role, String user_id) {
@@ -215,36 +176,5 @@ class Sender {
         this.role = role;
         this.user_id = user_id;
     }
-
-    public String getNickname() {
-        return this.nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public String getCard() {
-        return this.card;
-    }
-
-    public void setCard(String card) {
-        this.card = card;
-    }
-
-    public String getRole() {
-        return this.role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getUser_id() {
-        return this.user_id;
-    }
-
-    public void setUser_id(String user_id) {
-        this.user_id = user_id;
-    }
 }
+
