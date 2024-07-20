@@ -14,8 +14,8 @@ public class ModConfig {
     public String qqGroupID;
     @SerializedName("BOT_API_URL")
     public String BOT_API_URL;
-    @SerializedName("HttpPostPort")
-    public int HttpPostPort;
+    @SerializedName("WSPort")
+    public int WSPort;
     @SerializedName("listenWhenStart")
     public boolean listenWhenStart;
     @SerializedName("ListenCommand")
@@ -25,7 +25,7 @@ public class ModConfig {
         this.isMCSendEnabled = true;
         this.qqGroupID = "123456";
         this.BOT_API_URL = "http://127.0.0.1:5700";
-        this.HttpPostPort = 5710;
+        this.WSPort = 6700;
         this.listenWhenStart = true;
         this.ListenCommand = false;
     }

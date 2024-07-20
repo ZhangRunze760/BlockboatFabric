@@ -78,8 +78,6 @@ public class BlockboatFabric implements ModInitializer {
         ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
 
-
-
         if (config.listenWhenStart) new GetQQMessage();
 
         //qqbot命令注册开始
@@ -145,16 +143,16 @@ public class BlockboatFabric implements ModInitializer {
                                                     context.getSource().sendMessage(Text.literal(String.format("BOT_API_URL = %s", config.BOT_API_URL)));
                                                     return 1;
                                                 }))
-                                        .then(literal("HttpPostPort")
+                                        .then(literal("WSPort")
                                                 .then(CommandManager.argument("value", IntegerArgumentType.integer(0, 65535))
                                                         .executes(context -> {
-                                                            config.HttpPostPort = IntegerArgumentType.getInteger(context, "value");
+                                                            config.WSPort = IntegerArgumentType.getInteger(context, "value");
                                                             saveConfig(config);
                                                             context.getSource().sendMessage(Text.literal("成功设置"));
                                                             return 0;
                                                         }))
                                                 .executes(context -> {
-                                                    context.getSource().sendMessage(Text.literal(String.format("HttpPostPort = %d", config.HttpPostPort)));
+                                                    context.getSource().sendMessage(Text.literal(String.format("WSPort = %d", config.WSPort)));
                                                     return 1;
                                                 }))
                                         .then(literal("ListenCommand")
@@ -205,7 +203,7 @@ public class BlockboatFabric implements ModInitializer {
                                 .then(literal("startListen")
                                         .executes(context -> {
                                             new GetQQMessage();
-                                            context.getSource().sendMessage(Text.literal(String.format("开始尝试监听 %d 端口。", config.HttpPostPort)));
+                                            context.getSource().sendMessage(Text.literal(String.format("开始尝试监听 %d 端口。", config.WSPort)));
                                             return 0;
                                         })
                                 .executes(context -> {
@@ -240,6 +238,11 @@ public class BlockboatFabric implements ModInitializer {
 
     private void onServerStopped(MinecraftServer server) {
         sendMessage.sendMessageToGroup("服务器已关闭。");
+        try {
+            GetQQMessage.stopListening();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
     //定义各个事件响应方法结束
 
@@ -249,6 +252,7 @@ public class BlockboatFabric implements ModInitializer {
             config = new ModConfig();
             saveConfig(config);
             LOGGER.error("初次启动，请进入游戏使用\"/qqbot config\"命令修改配置后使用\"/qqbot reload\"重载机器人！");
+
         }
 
         try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {

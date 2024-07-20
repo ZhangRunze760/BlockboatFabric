@@ -1,28 +1,35 @@
 package fun.trtrmc.blockboat.command;
 
 import com.google.gson.Gson;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
+import com.google.gson.JsonObject;
 import fun.trtrmc.blockboat.BlockboatFabric;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.java_websocket.WebSocket;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.handshake.ServerHandshake;
+import org.java_websocket.server.WebSocketServer;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Objects;
 
 //获取QQ消息。
 public class GetQQMessage {
-    private static final int PORT = BlockboatFabric.config.HttpPostPort;
+    private static final int PORT = BlockboatFabric.config.WSPort;
     public static BindManager bindManager = new BindManager("config/blockboat-bind.json");
     public static MinecraftServer server = null;
+    private static final Logger LOGGER = LogManager.getLogger();
+    private SendMessage sendMessage = BlockboatFabric.sendMessage;
 
+    private static QQBot bot;
     public GetQQMessage() {
         startListening();
     }
@@ -68,44 +75,72 @@ public class GetQQMessage {
     }
 
     private void startListening() {
-        //利用sun的httpServer开始监听配置好的端口。
-        HttpServer server;
-        try {
-            server = HttpServer.create(new InetSocketAddress(PORT), 0);
-            server.createContext("/", new MessageHandler());
-            BlockboatFabric.LOGGER.info(String.format("Blockboat 将会开始监听 %d 端口。", PORT));
-            server.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        bot = new QQBot(new InetSocketAddress(PORT));
+        bot.start();
     }
 
-    private static class MessageHandler implements HttpHandler {
-        //收到POST上报时的反应。
-        public SendMessage sendMessage = new SendMessage(BlockboatFabric.config.qqGroupID, BlockboatFabric.config.BOT_API_URL);
+    public static void stopListening() throws InterruptedException {
+        bot.stop();
+    }
+
+    private class QQBot extends WebSocketServer {
+        private static final Gson gson = new Gson();
+
+        public QQBot(InetSocketAddress serverAddress) {
+            super(serverAddress);
+        }
 
         @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            Gson jObject = new Gson();
-            String request = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            JObject requestBody = jObject.fromJson(request, JObject.class);
-            if (Objects.equals(requestBody.getPost_type(), "message") && Objects.equals(requestBody.getMessage_type(), "group") && Objects.equals(requestBody.getGroup_id(), BlockboatFabric.config.qqGroupID)) {
-                Sender sender = requestBody.getSender();
-                if (sender.getCard() != null) {
-                    if (requestBody.getMessage().startsWith("sudo "))
-                        sendMessage.sendMessageToGroup(new String(parseQQCommand(requestBody.getMessage(), sender).getBytes(), StandardCharsets.UTF_8));
-                    else
-                        sendMessage.sendMCMessage(GetQQMessage.server, CQParse.replaceCQ(requestBody.getMessage()), sender.getCard());
-                } else
-                    sendMessage.sendMCMessage(GetQQMessage.server, CQParse.replaceCQ(requestBody.getMessage()), sender.getNickname());
-            } else if (Objects.equals(requestBody.getPost_type(), "message") && Objects.equals(requestBody.getMessage_type(), "private")) {
-                Sender sender = requestBody.getSender();
-                BlockboatFabric.LOGGER.info(String.format("收到了来自QQ号为%s、昵称为%s的用户的私信：%s", sender.getUser_id(), sender.getNickname(), requestBody.getMessage()));
+        public void onOpen(WebSocket conn, ClientHandshake handshakedata) {
+            LOGGER.info("WebSocket连接已建立！");
+        }
+
+        @Override
+        public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+            LOGGER.info("WebSocket服务器已关闭。");
+        }
+
+        @Override
+        public void onMessage(WebSocket conn, String message) {
+
+            LOGGER.info("WebSocket收到消息：" + message);
+
+            JsonObject json = gson.fromJson(message, JsonObject.class);
+            String postType = json.get("post_type").getAsString();
+            String messageType = postType.equals("message") ? json.get("message_type").getAsString() : null;
+
+            if (postType.equals("message") && messageType.equals("group")) {
+                String userId = json.get("user_id").getAsString();
+                String msg = json.get("raw_message").getAsString();
+                JsonObject sender = json.get("sender").getAsJsonObject();
+
+                String nickname = sender.get("nickname").getAsString();
+                String card = sender.get("card").getAsString();
+                String role = sender.get("role").getAsString();
+
+
+                String parsedMsg = CQParse.replaceCQ(msg);
+
+                Sender senderFormat = new Sender(nickname, card, role, userId);
+
+                if (parsedMsg.startsWith("sudo ")) {
+                   String returnMsg = parseQQCommand(parsedMsg, senderFormat);
+                   sendMessage.sendMessageToGroup(returnMsg);
+                }
+                else {
+                    sendMessage.sendMessageToGroup(parsedMsg);
+                }
             }
-            byte[] response = "OK".getBytes();
-            exchange.sendResponseHeaders(200, response.length);
-            exchange.getResponseBody().write(response);
-            exchange.close();
+        }
+
+        @Override
+        public void onError(WebSocket conn, Exception ex) {
+            ex.printStackTrace();
+        }
+
+        @Override
+        public void onStart() {
+            LOGGER.info("WebSocket服务器已开启！");
         }
     }
 }
