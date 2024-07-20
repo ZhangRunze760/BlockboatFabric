@@ -124,9 +124,7 @@ public class GetQQMessage {
                    String returnMsg = parseQQCommand(parsedMsg, senderFormat);
                    sendMessage.sendMessageToGroup(returnMsg);
                 }
-                else {
-                    sendMessage.sendMessageToGroup(parsedMsg);
-                }
+                sendMessage.sendMCMessage(server, parsedMsg, nickname);
             }
         }
 
