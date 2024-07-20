@@ -27,6 +27,7 @@ public class GetQQMessage {
     private final SendMessage sendMessage = BlockboatFabric.sendMessage;
 
     private static QQBot bot;
+
     public GetQQMessage() {
         startListening();
     }
@@ -80,9 +81,14 @@ public class GetQQMessage {
         bot.stop();
     }
 
-    private class QQBot extends WebSocketServer {
-        @Getter
+    @Getter
+    public class QQBot extends WebSocketServer {
         private WebSocket conn = null;
+
+        public WebSocket getConn() {
+            return conn;
+        }
+
         private static final Gson gson = new Gson();
 
         public QQBot(InetSocketAddress serverAddress) {
@@ -107,9 +113,12 @@ public class GetQQMessage {
         @Override
         public void onMessage(WebSocket conn, String message) {
             JsonObject json = gson.fromJson(message, JsonObject.class);
+
+            if (json.get("post_type") == null) return;
+
             String postType = json.get("post_type").getAsString();
             String messageType = postType.equals("message") ? json.get("message_type").getAsString() : null;
-            String groupId = (postType.equals("message") && messageType.equals("group")) ? json.get("groupId").getAsString() : null;
+            String groupId = (postType.equals("message") && messageType.equals("group")) ? json.get("group_id").getAsString() : null;
 
             if (postType.equals("message") && messageType.equals("group") && groupId.equals(BlockboatFabric.config.qqGroupID)) {
                 String userId = json.get("user_id").getAsString();
@@ -117,17 +126,25 @@ public class GetQQMessage {
                 JsonObject sender = json.get("sender").getAsJsonObject();
 
                 String nickname = sender.get("nickname").getAsString();
-                String card = sender.get("card").getAsString();
+                String card = (!Objects.equals(sender.get("card").getAsString(), "")) ? sender.get("card").getAsString() : sender.get("nickname").getAsString();
                 String role = sender.get("role").getAsString();
+                String rawTitle = sender.get("title").getAsString();
+                String title;
+                if (!Objects.equals(rawTitle, "")) title = rawTitle;
+                else {
+                    if (Objects.equals(role, "admin")) title = "管理员";
+                    else if (Objects.equals(role, "owner")) title = "群主";
+                    else title = "";
+                }
 
                 String parsedMsg = CQParse.replaceCQ(msg);
-                Sender senderFormat = new Sender(nickname, card, role, userId);
+                Sender senderFormat = new Sender(nickname, card, role, userId, title);
 
                 if (parsedMsg.startsWith("sudo ")) {
                    String returnMsg = parseQQCommand(parsedMsg, senderFormat);
                    sendMessage.sendMessageToGroup(returnMsg);
                 }
-                sendMessage.sendMCMessage(server, parsedMsg, nickname);
+                sendMessage.sendMCMessage(server, parsedMsg, senderFormat);
                 LOGGER.info("转发QQ消息：" + parsedMsg);
             }
         }
@@ -141,6 +158,10 @@ public class GetQQMessage {
         public void onStart() {
             LOGGER.info("WebSocket服务器已开启！");
         }
+    }
+
+    public WebSocket getConn() {
+        return bot.getConn();
     }
 }
 
@@ -159,24 +180,6 @@ class JObject {
         this.message = message;
         this.sender = sender;
         this.group_id = group_id;
-    }
-}
-
-@Getter
-@Setter
-class Sender {
-    private String nickname;
-    private String card;
-    @Getter
-    private String role;
-    @Getter
-    private String user_id;
-
-    public Sender(String nickname, String card, String role, String user_id) {
-        this.nickname = nickname;
-        this.card = card;
-        this.role = role;
-        this.user_id = user_id;
     }
 }
 

@@ -42,6 +42,7 @@ public class BlockboatFabric implements ModInitializer {
     public static ModConfig config;
     //实例化SendMessage。
     public static SendMessage sendMessage;
+    public static GetQQMessage getQQMessage;
 
     @Override
     public void onInitialize() {
@@ -78,7 +79,7 @@ public class BlockboatFabric implements ModInitializer {
         ServerMessageEvents.CHAT_MESSAGE.register(this::onServerChatMessage);
         //配置消息接收器结束
 
-        if (config.listenWhenStart) new GetQQMessage();
+        getQQMessage = new GetQQMessage();
 
         //qqbot命令注册开始
         //调用了Fabric API的执行命令事件，当玩家执行了这个命令时触发。

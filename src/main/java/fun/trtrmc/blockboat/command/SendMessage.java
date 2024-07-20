@@ -1,9 +1,12 @@
 package fun.trtrmc.blockboat.command;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import fun.trtrmc.blockboat.BlockboatFabric;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import org.java_websocket.WebSocket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,6 +14,7 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Objects;
 
 //发送消息。整体原理非常简单，不过多赘述。
 public class SendMessage {
@@ -22,35 +26,26 @@ public class SendMessage {
         this.BOT_API_URL = BOT_API_URL;
     }
 
-    private static void HTTPGET(String url) throws IOException {
-        URLConnection urlConnection = new URL(url).openConnection();
-        HttpURLConnection connection = (HttpURLConnection) urlConnection;
-        connection.setRequestMethod("GET");
-        try {
-            connection.connect();
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader
-                        (connection.getInputStream(), StandardCharsets.UTF_8));
-                StringBuilder bs = new StringBuilder();
-                String l;
-                while ((l = bufferedReader.readLine()) != null) {
-                    bs.append(l).append("\n");
-                }
-            }
-        } catch (ConnectException e) {
-            BlockboatFabric.LOGGER.warn("无法连接至CQHTTP，机器人网络模块将不会启动。请修改配置后再次尝试。");
-        }
-    }
-
     public void sendMessageToGroup(String message) {
         SendMessageThread thread = new SendMessageThread(message);
         thread.start();
     }
 
-    public void sendMCMessage(MinecraftServer server, String message, String sender) {
+    public void sendMCMessage(MinecraftServer server, String message, Sender sender) {
         if (BlockboatFabric.config.isQQSendEnabled) {
-            String rawMessage = String.format("*<%s> %s", sender, message);
+            String rawMessage;
+            if (!Objects.equals(sender.getTitle(), "")) {
+                if (Objects.equals(sender.getRole(), "member"))
+                    rawMessage = String.format("*<%s§5[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
+                else if (Objects.equals(sender.getRole(), "admin"))
+                    rawMessage = String.format("*<%s§2[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
+                else if (Objects.equals(sender.getRole(), "owner"))
+                    rawMessage = String.format("*<%s§e[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
+                else return;
+            }
+            else {
+                rawMessage = String.format("*<%s> %s", sender.getCard(), message);
+            }
             Collection<ServerPlayerEntity> PlayerList = server.getPlayerManager().getPlayerList();
             for (ServerPlayerEntity player : PlayerList) {
                 player.sendMessage(Text.literal(rawMessage));
@@ -60,18 +55,20 @@ public class SendMessage {
 
     public class SendMessageThread extends Thread {
         String message;
+        WebSocket conn = BlockboatFabric.getQQMessage.getConn();
         public SendMessageThread(String message) { this.message = message; }
         public void run() {
-            String apiUrl = BOT_API_URL + "/send_group_msg";
-            String GETBody;
-            GETBody = String.format("""
-                ?group_id=%s&message=%s
-                """, group_id, URLEncoder.encode(message, StandardCharsets.UTF_8));
-            try {
-                HTTPGET(apiUrl + GETBody);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            JsonObject json = new JsonObject();
+            json.addProperty("action", "send_group_msg"); // 或 "send_group_msg" 根据需要修改
+            JsonObject params = new JsonObject();
+            params.addProperty("group_id", group_id); // 或 "group_id" 根据需要修改
+            params.addProperty("message", message);
+            json.add("params", params);
+
+            Gson gson = new Gson();
+            String jsonString = gson.toJson(json);
+
+            if(conn != null) conn.send(jsonString);
         }
     }
 }
