@@ -35,13 +35,17 @@ public class SendMessage {
         if (BlockboatFabric.config.isQQSendEnabled) {
             String rawMessage;
             if (!Objects.equals(sender.getTitle(), "")) {
-                if (Objects.equals(sender.getRole(), "member"))
-                    rawMessage = String.format("*<%s§5[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
-                else if (Objects.equals(sender.getRole(), "admin"))
-                    rawMessage = String.format("*<%s§2[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
-                else if (Objects.equals(sender.getRole(), "owner"))
-                    rawMessage = String.format("*<%s§e[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
-                else return;
+                switch (sender.getRole()) {
+                    case "member" ->
+                            rawMessage = String.format("*<%s§5[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
+                    case "admin" ->
+                            rawMessage = String.format("*<%s§2[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
+                    case "owner" ->
+                            rawMessage = String.format("*<%s§e[%s]§r> %s", sender.getCard(), sender.getTitle(), message);
+                    case null, default -> {
+                        return;
+                    }
+                }
             }
             else {
                 rawMessage = String.format("*<%s> %s", sender.getCard(), message);
