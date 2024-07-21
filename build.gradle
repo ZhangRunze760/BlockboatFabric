@@ -27,7 +27,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.32'
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
 
-    implementation "org.java-websocket:Java-WebSocket:1.5.3"
+    include(modImplementation "org.java-websocket:Java-WebSocket:1.5.3")
 }
 
 
